@@ -14,15 +14,15 @@ class MetricsAnalyzer:
         MetricsAnalyzer 클래스 초기화.
         """
         # 낮은 값이 좋은 지표 목록
-        self.lower_is_better_metrics = ['RMSE', 'MD', '>3', 'Bland-Altman', 'Error', 'Loss', 'MAE', 'MSE']
+        self.lower_is_better_metrics = ['RMSE', 'MD', '>3', 'Bland-Altman']
         
         # 높은 값이 좋은 지표 목록
-        self.higher_is_better_metrics = ['PCK', 'Pearson', 'ICC', 'Accuracy', 'Precision', 'Recall', 'F1']
+        self.higher_is_better_metrics = ['PCK', 'Pearson', 'ICC']
         
         # 우선순위 지표 설정
-        self.high_priority_metrics = ['PCK', 'Pearson', 'ICC', 'Accuracy', 'Precision', 'Recall', 'F1']
-        self.medium_priority_metrics = ['RMSE', 'MD', 'MAE']
-        self.low_priority_metrics = ['Loss', 'Error', '>3', 'Bland-Altman', 'MSE']
+        self.high_priority_metrics = ['PCK', 'Pearson', 'ICC']
+        self.medium_priority_metrics = ['RMSE', 'MD']
+        self.low_priority_metrics = ['>3', 'Bland-Altman']
     
     def normalize_metric(self, df: pd.DataFrame, metric: str, higher_is_better: bool = True) -> pd.Series:
         """

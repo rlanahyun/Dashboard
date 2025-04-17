@@ -10,7 +10,7 @@ from analysis.metrics import MetricsAnalyzer
 from analysis.performance import PerformanceCalculator
 from visualization.ranking_viz import RankingVisualizer
 from visualization.parameter_viz import ParameterVisualizer
-from visualization.dimension_viz import DimensionVisualizer
+from visualization.comparison_viz import ComparisonVisualizer
 from visualization.metrics_viz import MetricsVisualizer
 from visualization.data_viz import DataVisualizer
 
@@ -37,7 +37,7 @@ class DashboardApp:
         # 시각화 클래스 초기화
         self.ranking_viz = RankingVisualizer()
         self.parameter_viz = ParameterVisualizer()
-        self.dimension_viz = DimensionVisualizer()
+        self.comparison_viz = ComparisonVisualizer()
         self.metrics_viz = MetricsVisualizer()
         self.data_viz = DataVisualizer()
     
@@ -105,40 +105,53 @@ class DashboardApp:
             # 지표 그룹별로 가중치 설정
             total_weight = 0
             weights = {}
-            
-            # 낮은 값이 좋은 지표와 높은 값이 좋은 지표를 구분
-            lower_is_better = self.metrics_analyzer.lower_is_better_metrics
-            higher_is_better = [col for col in metric_columns 
-                            if not any(lower_better in col for lower_better in lower_is_better)]
-            lower_is_better = [col for col in metric_columns 
-                            if any(lower_better in col for lower_better in lower_is_better)]
+
+            # 지표 그룹화
+            hva_metrics = [col for col in metric_columns if 'HVA' in col]
+            ima_metrics = [col for col in metric_columns if 'IMA' in col]
+            point_metrics = [col for col in metric_columns if not 'HVA' in col and not 'IMA' in col]
             
             # 지표 그룹별로 UI 구성
-            if higher_is_better:
-                st.sidebar.markdown("#### 높은 값이 좋은 지표:")
-                for metric in higher_is_better:
+            if point_metrics:
+                st.sidebar.markdown("#### Point Metrics:")
+                for metric in point_metrics:
                     default_weight = 1.0 / len(metric_columns)
                     weight = st.sidebar.slider(
                         f"{metric}", 
                         min_value=0.0, 
                         max_value=1.0, 
                         value=default_weight,
-                        step=0.05,
+                        step=0.01,
                         format="%.2f"
                     )
                     weights[metric] = weight
                     total_weight += weight
             
-            if lower_is_better:
-                st.sidebar.markdown("#### 낮은 값이 좋은 지표:")
-                for metric in lower_is_better:
+            if hva_metrics:
+                st.sidebar.markdown("#### HVA Metrics:")
+                for metric in hva_metrics:
                     default_weight = 1.0 / len(metric_columns)
                     weight = st.sidebar.slider(
                         f"{metric}", 
                         min_value=0.0, 
                         max_value=1.0, 
                         value=default_weight,
-                        step=0.05,
+                        step=0.01,
+                        format="%.2f"
+                    )
+                    weights[metric] = weight
+                    total_weight += weight
+
+            if ima_metrics:
+                st.sidebar.markdown("#### IMA Metrics:")
+                for metric in ima_metrics:
+                    default_weight = 1.0 / len(metric_columns)
+                    weight = st.sidebar.slider(
+                        f"{metric}", 
+                        min_value=0.0, 
+                        max_value=1.0, 
+                        value=default_weight,
+                        step=0.01,
                         format="%.2f"
                     )
                     weights[metric] = weight
@@ -209,7 +222,7 @@ class DashboardApp:
             tab1, tab2, tab3, tab4, tab5 = st.tabs([
                 "📊 모델 성능 랭킹", 
                 "🔍 파라미터별 성능 분석", 
-                "📈 다차원 성능 비교",
+                "📈 모델별 지표 성능 비교",
                 "⭐ 성능 지표 상세 분석",
                 "📋 원본 데이터"
             ])
@@ -241,9 +254,9 @@ class DashboardApp:
                 # 파라미터 조합 분석
                 self.parameter_viz.display_optimal_param_combination(filtered_df)
             
-            # 탭 3: 다차원 성능 비교
+            # 탭 3: 모델별 지표 성능 비교
             with tab3:
-                self.dimension_viz.display_multidimensional_comparison(filtered_df, metric_columns)
+                self.comparison_viz.display_model_metric_comparison(filtered_df, metric_columns)
             
             # 탭 4: 성능 지표 상세 분석
             with tab4:
